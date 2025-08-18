@@ -7,7 +7,49 @@ Service.registerState('screenEnabled',this);Service.registerState('lidOpened',th
 if(telephony){console.log('to call telephony.setMaxTransmitPower');telephony.setMaxTransmitPower(1);}
 this.turnScreenOff();}});},autoAdjustBrightness:function scm_adjustBrightness(lux){if(lux<1){lux=1;}
 if(this._previousLux!==undefined){var brightnessDelta=Math.abs(this._previousLux-lux);if(brightnessDelta<=this.AUTO_BRIGHTNESS_MIN_DELTA){return;}}
-this._previousLux=lux;var computedBrightness=Math.log10(lux)*this.AUTO_BRIGHTNESS_CONSTANT;var clampedBrightness=Math.max(this.AUTO_BRIGHTNESS_MINIMUM,Math.min(1.0,computedBrightness));this.setScreenBrightness(clampedBrightness,false);},handleEvent:function scm_handleEvent(evt){var telephony=window.navigator.mozTelephony;var call;switch(evt.type){case'flipchange':if(this.lidOpened){this.turnScreenOn();}else{this.turnScreenOff(true,'flip');var fired=false;var go=function(){if(fired)return;fired=true;try{window.dispatchEvent(new CustomEvent('home',{bubbles:true,detail:{kill:true,back:true}}));}catch(e){}try{appWindowManager.display(null,null,null,'home');}catch(e){}try{Service.request('focus');}catch(e){}try{Service.request('InputWindowManager:kill');}catch(e){}};var on=function(){window.removeEventListener('da_screenon',on);setTimeout(go,0);setTimeout(go,16);};window.addEventListener('da_screenon',on);}
+this._previousLux=lux;var computedBrightness=Math.log10(lux)*this.AUTO_BRIGHTNESS_CONSTANT;var clampedBrightness=Math.max(this.AUTO_BRIGHTNESS_MINIMUM,Math.min(1.0,computedBrightness));this.setScreenBrightness(clampedBrightness,false);},handleEvent:function scm_handleEvent(evt){var telephony=window.navigator.mozTelephony;var call;switch(evt.type){case'flipchange':if(this.lidOpened){this.turnScreenOn();}
+else{
+this.turnScreenOff(true,'flip');
+var on=function(){
+window.removeEventListener('da_screenon',on);
+try{
+var home = Service.query && Service.query('getTopMostWindow');
+var ifr = home && home.isHomescreen && home.browser && home.browser.element;
+dump('[sys] da_screenon: home='+(!!home)+' isHomescreen='+(home&&home.isHomescreen)+' iframe='+(!!ifr));
+if (ifr && ifr.contentWindow){
+try{ dump('[sys] postMessage closeAppList'); ifr.contentWindow.postMessage('closeAppList',''); }catch(e){ dump('[sys] postMessage err '+e); }
+try{
+if (typeof ifr.contentWindow.__closeAppListFast==='function'){
+dump('[sys] call __closeAppListFast');
+ifr.contentWindow.__closeAppListFast();
+}
+}catch(e){ dump('[sys] __closeAppListFast err '+e); }
+setTimeout(function(){
+try{ dump('[sys] retry16 postMessage'); ifr.contentWindow.postMessage('closeAppList',''); }catch(e){}
+try{
+if (typeof ifr.contentWindow.__closeAppListFast==='function'){
+dump('[sys] retry16 __closeAppListFast');
+ifr.contentWindow.__closeAppListFast();
+}
+}catch(e){}
+},16);
+setTimeout(function(){
+try{ dump('[sys] retry48 postMessage'); ifr.contentWindow.postMessage('closeAppList','*'); }catch(e){}
+try{
+if (typeof ifr.contentWindow.__closeAppListFast==='function'){
+dump('[sys] retry48 __closeAppListFast');
+ifr.contentWindow.__closeAppListFast();
+}
+}catch(e){}
+},48);
+}
+}catch(e){ dump('[sys] homescreen lookup err '+e); }
+try{ dump('[sys] display home'); appWindowManager.display(null,null,null,'home'); }catch(e){}
+try{ dump('[sys] Service.focus'); Service.request('focus'); }catch(e){}
+try{ dump('[sys] IWM:kill'); Service.request('InputWindowManager:kill'); }catch(e){}
+};
+window.addEventListener('da_screenon',on);
+}
 break;case'notice-dialog-activated':this.turnScreenOn();this._setIdleTimeout(this.NOTICE_DIALOG_TIMEOUT,true);break;case'notice-dialog-deactivated':this._reconfigScreenTimeout();break;case'attentionopening':case'attentionopened':case'dialog--activated':if(!this.enabled){this.turnScreenOn();}else{this._reconfigScreenTimeout();}
 break;case'devicelight':if(!this._deviceLightEnabled||!this.screenEnabled||this._inTransition){return;}
 this.autoAdjustBrightness(evt.value);break;case'sleep':this.turnScreenOff(true,'powerkey');break;case'extscreen-toggle':this.toggleExtScreen();break;case'wake':this.turnScreenOn();if(FxAccountsUI.dialog&&!FxAccountsUI.dialog.Hidden())

@@ -1,3 +1,7 @@
+.appList--forceHidden {
+visibility: hidden !important;
+}
+
 [role="status_toaster"].toast-visible {
   background: var(--color-gs20) !important;
   position: fixed !important;

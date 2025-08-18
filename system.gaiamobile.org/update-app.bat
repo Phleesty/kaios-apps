@@ -20,4 +20,3 @@ adb push "%APP_DIR%application.zip" /system/b2g/webapps/system.gaiamobile.org/ap
 adb reboot
 
 endlocal
-pause

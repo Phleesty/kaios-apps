@@ -144,23 +144,40 @@ if (Service.query('getTopMostWindow').isHomescreen
 && Service.query('getTopMostUI').name === 'AppWindowManager'
 && document.activeElement.tagName.toLowerCase() === 'iframe') {
 if (this.isSilentActive()) {
-// Выход из беззвучного: включить вибрацию обратно и поднять каналы
+// Выход из беззвучного
 this.setVibrationEnabled(true);
 this.leaveSilentMode('notification');
-this.leaveSilentMode('content');
+this.leaveSilentMode('content'); // опционально, если глушили контент
+// Тост: звук включен
+try { Service.request('SystemToaster:show', { text: 'Звук включен' }); } catch (e) {}
+// Небольшой звуковой/тактильный сигнал (по умолчанию — вибрация 60мс)
+try { navigator.vibrate && navigator.vibrate(60); } catch (e) {}
+// Если нужен именно короткий звук, раскомментируй безопасный “тик”:
+// try {
+// const lock = navigator.mozSettings && navigator.mozSettings.createLock && navigator.mozSettings.createLock();
+// if (lock) {
+// // Мягко пульнуть уведомлением: поднять notification на 1 и сразу вернуть (может мигнуть UI громкости)
+// const cur = this.currentVolume.notification;
+// const tmp = Math.min(cur + 1, SoundManager.MAX_VOLUME.notification);
+// SettingsListener.getSettingsLock().set({ 'audio.volume.notification': tmp });
+// setTimeout(() => SettingsListener.getSettingsLock().set({ 'audio.volume.notification': cur }), 120);
+// }
+// } catch (e) {}
 } else {
-// Вход в беззвучный: опустить каналы и отключить вибрацию
+// Вход в беззвучный
 this.enterSilentMode('notification');
-this.enterSilentMode('content');
+this.enterSilentMode('content'); // опционально
 this.setVibrationEnabled(false);
+// Тост: режим без звука включен
+try { Service.request('SystemToaster:show', { text: 'Режим без звука включен' }); } catch (e) {}
 }
 }
 break;
             case 'volumeup':
-                this.handleVolumeKey(1);
+                // this.handleVolumeKey(1);
                 break;
             case 'volumedown':
-                this.handleVolumeKey(-1);
+                // this.handleVolumeKey(-1);
                 break;
             case 'audiochannelchanged':
                 this.setAudioChannel(e.detail.channel);

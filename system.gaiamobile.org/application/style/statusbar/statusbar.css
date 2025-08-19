@@ -1,3 +1,6 @@
+
+
+
 .sb-icon {
   position: relative;
   width: var(--statusbar-icon-size);
@@ -452,4 +455,39 @@ html[dir="rtl"] .sb-icon-signal[data-level]::before {
 
 html[dir="rtl"] .sb-icon-roaming {
   left: calc(var(--statusbar-icon-size) * 0.6);
+}
+
+/* ===== Battery percent as text: width auto, proper layer, spacing for row-reverse ===== */
+#statusbar-battery-percent {
+  display: inline-block !important;
+  position: relative !important;
+  width: auto !important;  /* критично: не квадрат */
+  font-size: 1.4rem;
+  line-height: 1;
+  color: var(--color-gs00) !important;
+
+  /* margin-right: 0.2rem !important; */
+
+  /* row-reverse: «зазор между % (справа) и батареей (слева от него)» даём через margin-right */
+
+
+  font-family: 'Open Sans Regular';
+  font-weight: 500;
+}
+
+#statusbar-battery {
+  margin-right: 0.5rem !important;
+}
+
+/* ===== Battery icon: fixed square box and its own layer ===== */
+#statusbar-battery {
+  display: inline-block !important;
+  position: relative !important;
+  z-index: 1 !important;
+  width: var(--statusbar-icon-size) !important;
+  height: var(--statusbar-icon-size) !important;
+  line-height: var(--statusbar-icon-size) !important;
+  font-size: var(--statusbar-icon-size) !important;
+  /* без дополнительных margin: общий gap уже задан для всех детей контейнера */
+
 }

@@ -7514,11 +7514,8 @@ switch (this.lastSheet) {
                             m.default.request("openSheet", "appList");
                             break;
                         case "ArrowUp":
-                            if (!n.isValidKeyUp("ArrowUp")) return;
-                            A.default.launch("iac", "launcher-panel", {
-                                target: "instant-settings"
-                            });
-                            break;
+                                A.default.launch("manifestURL", "app://sms.gaiamobile.org/manifest.webapp");
+                                break;
                         case "Backspace":
                             A.default.isLaunching && (A.default.isLaunching = !1)
                     }

@@ -45,7 +45,60 @@
       });
       },
 
-cleanUpNowLite: function(){try{appWindowManager.display(null,null,null,'home');}catch(e){}try{Service.request('focus');}catch(e){}try{Service.request('InputWindowManager:kill');}catch(e){}},
+    cleanUpNowLite: function() {
+      const whitelist = new Set([
+      'app://launcher.gaiamobile.org',
+      'app://system.gaiamobile.org',
+      'app://callscreen.gaiamobile.org',
+      'app://communications.gaiamobile.org',
+      'app://bluetooth.gaiamobile.org',
+      'app://network-alerts.gaiamobile.org',
+      'app://settings.gaiamobile.org',
+      'app://wappush.gaiamobile.org',
+      'app://download.gaiamobile.org',
+      'app://antitheft.gaiamobile.org',
+      'app://apnconfig.gaiamobile.org',
+      'app://engmode.gaiamobile.org',
+      'app://fota.gaiamobile.org',
+      'app://wallpaper.gaiamobile.org',
+      'app://ftu.gaiamobile.org'
+      ]);
+
+      try {
+      const candidates = [];
+      if (appWindowManager && appWindowManager._displayedApps) {
+      Object.values(appWindowManager._displayedApps).forEach(w => candidates.push(w));
+      }
+      try {
+      const active = appWindowManager.getActiveApp && appWindowManager.getActiveApp();
+      if (active && candidates.indexOf(active) === -1) candidates.push(active);
+      } catch (e) {}
+      if (appWindowManager && appWindowManager._apps) {
+      Object.values(appWindowManager._apps).forEach(w => { if (candidates.indexOf(w) === -1) candidates.push(w); });
+      }
+      if (appWindowManager && appWindowManager.runningApps) {
+      Object.values(appWindowManager.runningApps).forEach(w => { if (candidates.indexOf(w) === -1) candidates.push(w); });
+    }
+
+    candidates.forEach(win => {
+      try {
+        const origin = (win && win.origin) || (win.app && win.app.origin) || '';
+        if (!origin || whitelist.has(origin)) return;
+        if (typeof win.kill === 'function') win.kill();
+        else if (typeof win.close === 'function') win.close();
+      } catch (e) { dump('cleanUpNowLite window loop error: ' + e); }
+    });
+
+    } catch (e) {
+    dump('cleanUpNowLite error: ' + e);
+    }
+
+    Service.request('InputWindowManager:kill');
+    window.requestAnimationFrame(() => {
+    appWindowManager.display(null, null, null, 'home');
+    Service.request('focus');
+    });
+    },
 
 
     /**
